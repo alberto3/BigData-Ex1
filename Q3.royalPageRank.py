@@ -1,35 +1,44 @@
 import random
 
 
-def royalPageRank(listOfPairs, rounds=1000):
+def royalPageRank(listOfPairs, rounds=1000, follow_probability=0.8):
     links = {}
-    rank = {}
+    ranks = {}
     for [url, link] in listOfPairs:
         if link == '':
             continue
-        if links.__contains__(url):
-            links[url] += [link]
-        else:
-            links[url] = [link]
-    # for i in links:
-    #     print(i, links[i])
-    current_url = listOfPairs[0][0]  # start page
+
+        init_links(link, links, url)
+
+    current_url = listOfPairs[0][0]
     for i in range(rounds):
-        # print("round : ", i)
-        if rank.__contains__(current_url):
-            rank[current_url] += 1
-        else:
-            rank[current_url] = 1
-        if random.random() < 0.8 and links.__contains__(current_url):  # go to a linked url
-            next_url = links[current_url][random.randint(0, len(links[current_url]) - 1)]
-        else:  # random>0.8 or no links from current url
-            next_url = links.keys()[random.randint(0, len(links.keys()) - 1)]
-
+        init_rank(current_url, ranks)
+        next_url = fetch_next_url(current_url, follow_probability, links)
         current_url = next_url
-    for key in rank.keys():
-        rank[key] = rank[key] * 1.0 / rounds
-    # print("probs : ", sorted(rank.values(),reverse=True))
-    # print("visited ",len(rank) ," diff urls")
-    return rank
 
-# print royalPageRank(Q2.crawlRelatives(Q2.queen_url, Q2.xpath_exp, max=50))
+    for key in ranks.keys():
+        ranks[key] = ranks[key] * 1.0 / rounds
+
+    return ranks
+
+
+def init_links(link, links, url):
+    if url in links:
+        links[url] += [link]
+    else:
+        links[url] = [link]
+
+
+def init_rank(current_url, ranks):
+    if current_url in ranks:
+        ranks[current_url] += 1
+    else:
+        ranks[current_url] = 1
+
+
+def fetch_next_url(current_url, follow_probability, links):
+    if random.random() < follow_probability and current_url in links:
+        next_url = links[current_url][random.randint(0, len(links[current_url]) - 1)]
+    else:
+        next_url = links.keys()[random.randint(0, len(links.keys()) - 1)]
+    return next_url
